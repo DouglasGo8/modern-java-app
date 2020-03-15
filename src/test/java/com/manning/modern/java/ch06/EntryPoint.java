@@ -2,16 +2,18 @@ package com.manning.modern.java.ch06;
 
 import com.manning.modern.java.domain.dto.Dish;
 import com.manning.modern.java.domain.dto.Transaction;
+import com.manning.modern.java.domain.enums.CaloricLevel;
 import com.manning.modern.java.domain.enums.Type;
 import org.junit.Test;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.System.out;
 import static java.util.stream.Collectors.*;
+import static java.util.Arrays.asList;
 
 /**
  * @author dbatista
@@ -129,10 +131,70 @@ public class EntryPoint {
 
         out.println(v2.stream().collect(groupingBy(Dish::getType, flatMapping(d -> v1.get(d.getName()).stream(), toSet()))));
 
+    }
+
+    @Test
+    public void mapByCaloricLevel() {
+
+        var menu = Dish.listOfMenu();
+
+        menu.stream().collect(groupingBy(dish -> {
+            if (dish.getCalories() <= 400) return CaloricLevel.DIET;
+            else if (dish.getCalories() <= 700) return CaloricLevel.NORMAL;
+            else return CaloricLevel.FAT;
+        })).forEach((k, v) -> out.println(k + "-" + v));
+    }
+
+    @Test
+    public void mappedByFlat() {
+
+        var dishTags = new HashMap<String, List<String>>();
+        var menu = Dish.listOfMenu();
+
+        dishTags.put("pork", asList("greasy", "salty"));
+        dishTags.put("beef", asList("salty", "roasted"));
+        dishTags.put("chicken", asList("fried", "crisp"));
+        dishTags.put("french fries", asList("greasy", "fried"));
+        dishTags.put("rice", asList("light", "natural"));
+        dishTags.put("season fruit", asList("fresh", "natural"));
+        dishTags.put("pizza", asList("tasty", "salty"));
+        dishTags.put("prawns", asList("tasty", "roasted"));
+        dishTags.put("salmon", asList("delicious", "fresh"));
+
+
+        out.println((menu.stream().collect(groupingBy(Dish::getType,
+                flatMapping(dish -> dishTags.get(dish.getName()).stream(), toSet())))));
+
 
     }
 
-    // 6.3.2
+    @Test
+    public void mappedBySubGroup() {
 
+        out.println(Dish.listOfMenu().stream().collect(groupingBy(Dish::getType, counting())));
+        out.println(Dish.listOfMenu().stream()
+                .collect(groupingBy(Dish::getType, maxBy(Comparator.comparingInt(Dish::getCalories)))));
+
+        out.println(Dish.listOfMenu().stream().collect(toMap(Dish::getType, Function.identity(),
+                        BinaryOperator.maxBy(Comparator.comparingInt(Dish::getCalories)))));
+
+        out.println(Dish.listOfMenu().stream().collect(groupingBy(Dish::getType,
+                summingInt(Dish::getCalories))));
+
+    }
+
+    @Test
+    public void partitioningByType() {
+
+        var menu = Dish.listOfMenu();
+
+        out.println(menu.stream().collect(partitioningBy(Dish::isVegetarian)));
+        out.println(menu.stream().filter(Dish::isVegetarian).collect(toList()));
+        out.println(menu.stream().collect(partitioningBy(Dish::isVegetarian,
+                        collectingAndThen(maxBy(Comparator.comparingInt(Dish::getCalories)),
+                                Optional::get))));
+
+;
+    }
 
 }
