@@ -72,7 +72,10 @@ public class EntryPoint {
         out.println(Dish.listOfMenu().stream().collect(reducing(0, Dish::getCalories, (i, j) -> i + j))); // can be replaced as bellow
         out.println(Dish.listOfMenu().stream().map(Dish::getCalories).reduce(Integer::sum));
 
-        Dish.listOfMenu().stream().collect(reducing((d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 : d2))
+        // Dish.listOfMenu().stream().collect(reducing((d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 : d2))
+        //       .ifPresent(out::println);
+
+        Dish.listOfMenu().stream().reduce((d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 : d2)
                 .ifPresent(out::println);
 
         Dish.listOfMenu().stream().reduce((d1, d2) -> d1.getCalories() > d2.getCalories() ? d1 : d2)
